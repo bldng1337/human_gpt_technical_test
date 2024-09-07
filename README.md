@@ -11,10 +11,10 @@ We won't instruct the language model to roleplay as a user. Instead, we'll instr
 Press the "Open in Colab" button to open the notebook in Google Colab.
 
 ## TODO
-TODO:
 - Make a chatwindow with panel to test the model interactively
 - test multiple backs and forths
-Models to compare/try:
+
+## Models to compare/try:
 - https://huggingface.co/ArliAI/Llama-3.1-8B-ArliAI-RPMax-v1.1-GGUF
 - https://huggingface.co/ArliAI/Phi-3.5-mini-3.8B-ArliAI-RPMax-v1.1-GGUF
 - https://huggingface.co/google/gemma-2-2b-it-GGUF
