@@ -1,3 +1,9 @@
+---
+title: demo_human_gpt
+app_file: interactive_test.py
+sdk: gradio
+sdk_version: 4.43.0
+---
 # HumanGPT Game Test
 <a target="_blank" href="https://colab.research.google.com/github/bldng1337/human_gpt_technical_test/blob/main/chat_test.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
