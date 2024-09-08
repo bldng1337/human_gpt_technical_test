@@ -1,11 +1,6 @@
-from re import sub
 from typing import Dict, List
 import gradio as gr
 from llama_cpp import Llama
-import random
-import time
-
-from sympy import Li
 
 syspropmt=r"""
 <|system|>
