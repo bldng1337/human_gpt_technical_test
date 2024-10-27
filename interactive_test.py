@@ -2,26 +2,39 @@ from typing import Any, Dict, List
 import gradio as gr
 from llama_cpp import Llama
 
+import chatmodel
 from models import Phi35,models
 
-syspropmt=r"""
+sysprompt=r"""
+{{! This comment will not show up in the output}}
 The User will make an inquiry to the assistant.
 Fullfill the users inquiry.
-The User will write a message with his closing thoughts and the keyword "<|endtile|>" if his inquiry is fullfilled.
+{{#if (eq model "SwapChat")}}
+The User will write a message with his closing thoughts and the keyword "<|endtile|>" if his inquiry is fulfilled.
+{{/if}}
 The User will never have more than one inquiry in one conversation.
 The User will never complete his own inquiry.
 The User will never be a assistant.
 The User keep his message short in one sentence.
+{{#if (eq model "SwapChat")}}
 All conversations will end with "<|endtile|>".
+{{/if}}
 After each User message is one assistant response.
 There can never be more than one assistant response in succession.
-
+{{#if (eq model "SwapChat")}}
 Example:
 User: What is the capital?
 Assistant: Could you please specify which capital you are referring to?
 User: The capital of France
 Assistant: The capital of France is Paris
 User: <|endtile|>
+{{else}}
+Example:
+User: What is the capital?
+Assistant: Could you please specify which capital you are referring to?
+User: The capital of France
+Assistant: The capital of France is Paris
+{{/if}}
 """.strip()
 
 conversations:List[Dict[str, Any]]=[
@@ -79,8 +92,10 @@ conversations:List[Dict[str, Any]]=[
 def chatmsg(message, role):
     return {"role": role, "content": message}
 
-currmodel=Phi35()
 
+
+currmodel=Phi35()
+chat:chatmodel.ChatModel=chatmodel.models[0](currmodel,sysprompt)
 
 with gr.Blocks() as demo:
     with gr.Accordion("Info"):
@@ -117,8 +132,15 @@ with gr.Blocks() as demo:
             return "", next(conversation for conversation in conversations if conversation["name"] == choice)["content"]
         convchoicebox.change(update_choicebox, [convchoicebox,custom_conv], [msg,chatbot])
 
+        msysprompt=gr.Textbox(value=sysprompt, label="System Prompt")
 
-        sysprompt=gr.Textbox(value=syspropmt, label="System Prompt")
+        def update_sysprompt(csysprompt:str):
+            global sysprompt
+            sysprompt=csysprompt
+            chat.setSysPrompt(sysprompt)
+            chat.setconversation([])
+            return "", chat.getconversation()
+        msysprompt.submit(update_sysprompt, [msysprompt], [msg,chatbot])
 
         #Choose Models
         modelchoicebox = gr.Radio(choices=[model.modelname for model in models], value=currmodel.modelname, label="Model")
@@ -126,25 +148,25 @@ with gr.Blocks() as demo:
             global currmodel
             currmodel.close()
             currmodel=next(model for model in models if model.modelname == choice)()
-            return "", []
+            chat.setModel(currmodel)
+            chat.setconversation([])
+            return "", chat.getconversation()
         modelchoicebox.change(update_modelchoicebox, [modelchoicebox], [msg,chatbot])
 
-    #generate response
-    def respond(message:str, chat_history:List[Dict[str, str]],syspropmt:str):
-        global currmodel
-        if "End of conversation." in [i["content"] for i in chat_history]:
-            return "", chat_history
-        chat_history.append(chatmsg(message,"assistant"))
+        chatchoicebox = gr.Radio(choices=[model.name for model in chatmodel.models], value=chat.name, label="Chat")
+        def update_chatchoicebox(choice):
+            global chat, currmodel, sysprompt
+            chat=next(model for model in chatmodel.models if model.name == choice)(currmodel,sysprompt)
+            chat.setconversation([])
+            return "", chat.getconversation()
+        chatchoicebox.change(update_chatchoicebox, [chatchoicebox], [msg,chatbot])
 
-        ret=currmodel(currmodel.conv([chatmsg(syspropmt,"system")])+currmodel.conv(chat_history)+currmodel.starttok("user"), stop=[".","\n \n","?\n",".\n","tile|>"],max_tokens=100)
-        comp=ret["choices"][0]["text"]
-        print(repr(comp))
-        if("<|end" in comp):
-            chat_history.append(chatmsg(comp.removesuffix("<|end"),"user"))
-            chat_history.append(chatmsg("End of conversation.","user"))
-        else:
-            chat_history.append(chatmsg(comp,"user"))
-        return "", chat_history
-    submit.click(respond, [msg, chatbot,sysprompt], [msg, chatbot])
-    msg.submit(respond, [msg, chatbot,sysprompt], [msg, chatbot])
+    #generate response
+    def respond(message:str,chatbot:List[Dict[str, str]]):
+        global chat
+        chat.setconversation(chatbot)
+        chat(message)
+        return "", chat.getconversation()
+    submit.click(respond, [msg,chatbot], [msg, chatbot])
+    msg.submit(respond, [msg,chatbot], [msg, chatbot])
 demo.launch()
