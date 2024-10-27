@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from llama_cpp import Llama
-llama_args={"n_gpu_layers":100,"main_gpu":0,"verbose":True}
+llama_args={"n_gpu_layers":100,"main_gpu":0,"verbose":False}
 
 class Model:
     def __init__(self):
@@ -23,10 +23,10 @@ class Phi35RPMax(Model):
             repo_id="ArliAI/Phi-3.5-mini-3.8B-ArliAI-RPMax-v1.1-GGUF",
             filename="ArliAI-RPMax-3.8B-v1.1-fp16.gguf",
             **llama_args,
-
         )
         
     def __call__(self, msg:str, stop:List[str], max_tokens:int):
+        print("Autocomplete: ",msg)
         ret=self.llm(msg, stop=stop, max_tokens=max_tokens)
         return ret
     
@@ -45,6 +45,7 @@ class Phi35(Model):
             **llama_args,
         )
     def __call__(self, msg:str, stop:List[str], max_tokens:int):
+        print("Autocomplete: ",msg)
         return self.llm(msg, stop=stop, max_tokens=max_tokens)
 
     def conv(self,msgs:List[Dict[str, str]]):
@@ -90,6 +91,7 @@ class Llama31uncensored(Model):
             **llama_args,
         )
     def __call__(self, msg:str, stop:List[str], max_tokens:int):
+        print("Autocomplete: ",msg)
         return self.llm(msg, stop=stop, max_tokens=max_tokens)
     
     def start(self):
@@ -111,6 +113,7 @@ class Llama31(Model):
             **llama_args,
         )
     def __call__(self, msg:str, stop:List[str], max_tokens:int):
+        print("Autocomplete: ",msg)
         return self.llm(msg, stop=stop, max_tokens=max_tokens)
     
     def conv(self,msgs:List[Dict[str, str]]):

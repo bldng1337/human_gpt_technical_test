@@ -41,9 +41,9 @@ class SwapChatModel(ChatModel):
         super().__init__(model,sysprompt)
         self.conversation=[]
     def __call__(self, msg:str):
+        self.conversation.append(chatmsg(msg,"assistant"))
         if "End of conversation." in [i["content"] for i in self.conversation]:
             return
-        self.conversation.append(chatmsg(msg,"assistant"))
         prompt="".join([
             self.model.start(),
             self.model.conv([chatmsg(self.sysprompt,"system")]),
@@ -80,7 +80,7 @@ class InquiryChatModel(SwapChatModel):
         ret=self.model(prompt, stop=[".","\n \n","?\n",".\n","tile|>","\n"],max_tokens=10)
         print("system prompt:",ret["choices"][0]["text"])
         if "true" in ret["choices"][0]["text"].lower():
-            self.conversation.append(chatmsg(msg,"user"))
+            self.conversation.append(chatmsg(msg,"assistant"))
             self.conversation.append(chatmsg("End of conversation.","user"))
     def __call__(self, msg:str):
         self.inquire(msg)

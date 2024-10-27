@@ -7,20 +7,18 @@ from models import Phi35,models
 
 sysprompt=r"""
 {{! This comment will not show up in the output}}
-The User will make an inquiry to the assistant.
-Fullfill the users inquiry.
+You are a user of an artificial assistant. You ask the artificial assistant one inquiry.
+
+Rules:
 {{#if (eq model "SwapChat")}}
-The User will write a message with his closing thoughts and the keyword "<|endtile|>" if his inquiry is fulfilled.
+- The User will write a message with his closing thoughts and the keyword "<|endtile|>" if his inquiry is fulfilled.
 {{/if}}
-The User will never have more than one inquiry in one conversation.
-The User will never complete his own inquiry.
-The User will never be a assistant.
-The User keep his message short in one sentence.
 {{#if (eq model "SwapChat")}}
-All conversations will end with "<|endtile|>".
+- All conversations will end with "<|endtile|>".
 {{/if}}
-After each User message is one assistant response.
-There can never be more than one assistant response in succession.
+- The User will never have more than one inquiry in one conversation.
+- The User will never complete his inquiry.
+
 {{#if (eq model "SwapChat")}}
 Example:
 User: What is the capital?
